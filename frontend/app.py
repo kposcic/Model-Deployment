@@ -3,23 +3,29 @@ import streamlit as st
 import requests
 
 BACKEND_URL = os.getenv(
-    "BACKEND_URL",
+    "BACKEND_URL",          # in fromtend contaner we can run something like '-e BACKEND_URL=http://superkart-backend:7860' 
+                            # to set the backend url to the backend container name and port. This is used in distributed deployment.
+                            # If not set, it will default to the local backend url for local testing. 
     "http://127.0.0.1:7860"
 )
 
-MODEL_REFERENCE_YEAR = 2026
+# Reference year used when the model's Store_Age_Years feature was created.
+# This must remain consistent with the feature engineering used during training.
+MODEL_REFERENCE_YEAR = 2026   
 
 
 # --------------------------------------------------
 # Page Setup
 # --------------------------------------------------
 
-st.set_page_config(
+# this is a streamlit function to set the page title, icon and layout. Browser tab/window title, not the large heading title inside the page.
+st.set_page_config(     
     page_title="SuperKart Sales Prediction",
     page_icon="🛒",
     layout="wide"
 )
 
+# set the main title and caption for the page. This is displayed inside the page, not in the browser tab/window.
 st.title("SuperKart Sales Prediction")
 st.caption(
     "Predict product sales for an individual product "
@@ -29,7 +35,7 @@ st.caption(
 
 # --------------------------------------------------
 # Tabs
-# --------------------------------------------------
+# We have two tabs, one for single prediction and one for batch prediction. 
 
 single_tab, batch_tab = st.tabs(
     ["Single Prediction", "Batch Prediction"]
@@ -40,16 +46,20 @@ single_tab, batch_tab = st.tabs(
 # SINGLE PREDICTION
 # ==================================================
 
-with single_tab:
+with single_tab:    # within the 'single tab' in a window, create this below 
+                    # 'with' just cretaes a context within which the code below is executed.
+                    # Without 'with', I would need to call each streamlit function with the tab object, like single_tab.subheader(), single_tab.form(), etc.
 
     st.subheader("Product and Store Information")
 
-    with st.form("single_prediction_form"):
+    with st.form("single_prediction_form"): # 'form' groups all inputs under one submit action and avoids rerunning
+                                            # the app every time an individual input value changes.
 
-        col1, col2 = st.columns(2)
+        col1, col2 = st.columns(2)   # split 10 inputs into 2 columns for 
 
         # --------------------------
-        # Product Information
+        # Product Information - here we are creating the input fields for the product information in the first column. 
+        # Each input field  is limited to the expected range of values for that feature.  
         # --------------------------
 
         with col1:
@@ -82,7 +92,7 @@ with single_tab:
             )
 
         # --------------------------
-        # Store Information
+        # Store Information - similar for col 2
         # --------------------------
 
         with col2:
@@ -120,6 +130,8 @@ with single_tab:
                 step=1
             )
 
+        # When clicked, the form values are submitted together.
+        # During the resulting Streamlit rerun, `submitted` is True.
         submitted = st.form_submit_button(
             "Predict Sales",
             use_container_width=True
@@ -134,7 +146,7 @@ with single_tab:
     # Send Single Prediction
     # --------------------------
 
-    if submitted:
+    if submitted:   # when the form is submited, rerun the app, capture the new state of the inputs. 
 
         payload = {
             "Product_Weight": product_weight,
@@ -150,16 +162,16 @@ with single_tab:
         }
 
         try:
-
+            # Send POST request in JSON format to the backend API for single prediction (endpoint that we created in backend).  
             response = requests.post(
                 f"{BACKEND_URL}/v1/predict",
                 json=payload
             )
-
+            # retreive the results if the request was successful (status code 200). If not, display an error message with the status code and response text.
             if response.status_code == 200:
 
                 prediction = response.json()["Predicted_Sales"]
-
+                # 'metric' is a streamlit function that displays a single value with a label in a prominent way (as oposed to say 'write' widget). 
                 st.metric(
                     label="Predicted Sales",
                     value=f"${prediction:,.2f}"
@@ -180,7 +192,7 @@ with single_tab:
 
 
 # ==================================================
-# BATCH PREDICTION
+# BATCH PREDICTION = we do similar for batch service, all created in another tab and file upload and download button.
 # ==================================================
 
 with batch_tab:

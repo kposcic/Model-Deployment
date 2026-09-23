@@ -61,7 +61,10 @@ def predict_sales():
     sample = {col: product_data[col] for col in REQUIRED_COLUMNS}
     # Create a dataframe from the dictionary to ensure the model receives the input in the correct format
     input_data = pd.DataFrame([sample])
-    # Make prediction using the loaded model; model.predict always retunrs a 2D array, so we take the first element to get the scalar prediction value
+
+    # model.predict() returns one prediction per input row.
+    # Since input_data contains one row, the returned array contains
+    # one value, so [0] extracts that prediction.
     prediction = model.predict(input_data)[0]
 
     # Create and return a Flask JSON Response containing the predicted sales value.
