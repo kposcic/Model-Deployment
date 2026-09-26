@@ -82,7 +82,7 @@ with single_tab:    # within the 'single tab' in a window, create this below
 
             product_type_category = st.selectbox(
                 "Product Type Category",
-                ["Perishable", "Non Perishable"]
+                ["Perishables", "Non Perishables"]
             )
 
             product_allocated_area = st.number_input(
